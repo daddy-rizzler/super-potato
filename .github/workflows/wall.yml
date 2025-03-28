@@ -25,6 +25,9 @@ jobs:
     - name: Run wallpaper.bat
       run: |
         Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
+        Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
+        Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
+        Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
         
     # Add custom user with full name as username
     - name: Add custom user
