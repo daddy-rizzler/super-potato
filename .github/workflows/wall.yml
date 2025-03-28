@@ -1,3 +1,5 @@
+name: test it
+
 on:
   workflow_dispatch:
 
@@ -25,11 +27,6 @@ jobs:
     - name: Run wallpaper.bat
       run: |
         Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
-
-    # Run wallpaper.bat file (assuming it's located in the root directory of your repository)
-    - name: Run startup.bat
-      run: |
-        Start-Process -FilePath "$env:GITHUB_WORKSPACE\startup.bat" -NoNewWindow -Wait        
         
     # Add custom user with full name as username
     - name: Add custom user
@@ -38,7 +35,7 @@ jobs:
         $password = ConvertTo-SecureString "${{ secrets.MASTER_PASSWORD }}" -AsPlainText -Force
         New-LocalUser -Name $username -Password $password -FullName $username -Description "Custom user for RDP access"
         Add-LocalGroupMember -Group "Administrators" -Member $username  # Optionally add user to Administrators group
-                
+
     - name: Start Playit and Set Up RDP Tunnel
       env:
         PLAYIT_AUTH_KEY: ${{ secrets.PL }}
