@@ -20,7 +20,12 @@ jobs:
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "${{ secrets.MASTER_PASSWORD }}" -Force)
-
+    
+    # Run wallpaper.bat file (assuming it's located in the root directory of your repository)
+    - name: Run wallpaper.bat
+      run: |
+        Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
+        
     # Add custom user with full name as username
     - name: Add custom user
       run: |
@@ -35,11 +40,6 @@ jobs:
       run: |
         Start-Process -FilePath "$env:USERPROFILE\playit.exe" -ArgumentList "--secret $env:PLAYIT_AUTH_KEY" -NoNewWindow -Wait
         Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
-
-    # Run wallpaper.bat file (assuming it's located in the root directory of your repository)
-    - name: Run wallpaper.bat
-      run: |
-        Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
 
     # Prevent workflow from stopping
     - name: Keep the GitHub Action Runner Alive
