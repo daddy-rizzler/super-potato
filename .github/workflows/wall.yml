@@ -1,4 +1,4 @@
-name: test it
+name: test it2
 
 on:
   workflow_dispatch:
@@ -27,6 +27,12 @@ jobs:
     - name: Run wallpaper.bat
       run: |
         Start-Process -FilePath "$env:GITHUB_WORKSPACE\wallpaper.bat" -NoNewWindow -Wait
+        
+    # Run wallpaper.bat file (assuming it's located in the root directory of your repository)
+    - name: Run startup.bat
+      run: |
+        Start-Process -FilePath "$env:GITHUB_WORKSPACE\startup.bat" -NoNewWindow -Wait
+        
         
     # Add custom user with full name as username
     - name: Add custom user
