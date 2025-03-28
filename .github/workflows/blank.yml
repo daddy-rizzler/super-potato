@@ -1,4 +1,4 @@
-name: good boytest
+name: test it
 
 on:
   workflow_dispatch:
@@ -8,42 +8,37 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout the repository
+    - name: Check out the repository
       uses: actions/checkout@v2
 
     - name: Download and Install Playit
       run: |
         Invoke-WebRequest -Uri "https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-windows-x86_64-signed.exe" -OutFile "$env:USERPROFILE\playit.exe"
-        Start-Sleep -Seconds 5  # Allow time for download to complete
+        Start-Sleep -Seconds 5  # Give some time for the download to complete
 
-    # Enable RDP (Remote Desktop Protocol)
-    - name: Enable RDP Connections
-      run: |
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+    # Default, optional.
+    - name: Enable TS
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+    - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "${{ secrets.MASTER_PASSWORD }}" -Force)
 
-    # Update the password for the default user
-    - name: Update Default User Password
+    # Add custom user with full name as username
+    - name: Add custom user
       run: |
-        Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "${{ secrets.MASTER_PASSWORD }}" -Force)
-
-    # Create a new custom user with RDP access
-    - name: Create Custom User for RDP
-      run: |
-        $username = "Admin User"
+        $username = "Admin"
         $password = ConvertTo-SecureString "${{ secrets.MASTER_PASSWORD }}" -AsPlainText -Force
-        New-LocalUser -Name $username -Password $password -FullName $username -Description "Custom RDP user"
-        Add-LocalGroupMember -Group "Administrators" -Member $username  # Optionally make user an administrator
+        New-LocalUser -Name $username -Password $password -FullName $username -Description "Custom user for RDP access"
+        Add-LocalGroupMember -Group "Administrators" -Member $username  # Optionally add user to Administrators group
 
-    - name: Launch Playit and Start RDP Tunnel
+    - name: Start Playit and Set Up RDP Tunnel
       env:
         PLAYIT_AUTH_KEY: ${{ secrets.PL }}
       run: |
         Start-Process -FilePath "$env:USERPROFILE\playit.exe" -ArgumentList "--secret $env:PLAYIT_AUTH_KEY" -NoNewWindow -Wait
         Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
 
-    # Keep the workflow running to maintain tunnel
-    - name: Keep Action Runner Active
+    # Prevent workflow from stopping
+    - name: Keep the GitHub Action Runner Alive
       run: |
-          Start-Sleep -Seconds 11800  # Keeps the action running for the specified duration
+          Start-Sleep -Seconds 11800  # Adjust the duration based on your needs
