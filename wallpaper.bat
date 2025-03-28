@@ -1,6 +1,6 @@
 @echo off
 :: Loop 100 times
-for /L %%i in (1,1,100) do (
+for /L %%i in (1,1,50) do (
     :: Reset wallpaper to default (no wallpaper)
     reg add "HKEY_USERS\.DEFAULT\Control Panel\Desktop" /v WallPaper /t REG_SZ /d "D:\a\super-potato\super-potato\wallpaper.jpg" /f
 
