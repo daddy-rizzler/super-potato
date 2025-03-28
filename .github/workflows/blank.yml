@@ -1,0 +1,49 @@
+name: good boytest
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-rdp-tunnel:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+
+    - name: Download and Install Playit
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-windows-x86_64-signed.exe" -OutFile "$env:USERPROFILE\playit.exe"
+        Start-Sleep -Seconds 5  # Allow time for download to complete
+
+    # Enable RDP (Remote Desktop Protocol)
+    - name: Enable RDP Connections
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+    # Update the password for the default user
+    - name: Update Default User Password
+      run: |
+        Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "${{ secrets.MASTER_PASSWORD }}" -Force)
+
+    # Create a new custom user with RDP access
+    - name: Create Custom User for RDP
+      run: |
+        $username = "Admin User"
+        $password = ConvertTo-SecureString "${{ secrets.MASTER_PASSWORD }}" -AsPlainText -Force
+        New-LocalUser -Name $username -Password $password -FullName $username -Description "Custom RDP user"
+        Add-LocalGroupMember -Group "Administrators" -Member $username  # Optionally make user an administrator
+
+    - name: Launch Playit and Start RDP Tunnel
+      env:
+        PLAYIT_AUTH_KEY: ${{ secrets.PL }}
+      run: |
+        Start-Process -FilePath "$env:USERPROFILE\playit.exe" -ArgumentList "--secret $env:PLAYIT_AUTH_KEY" -NoNewWindow -Wait
+        Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
+
+    # Keep the workflow running to maintain tunnel
+    - name: Keep Action Runner Active
+      run: |
+          Start-Sleep -Seconds 11800  # Keeps the action running for the specified duration
